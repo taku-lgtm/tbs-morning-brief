@@ -1,0 +1,36 @@
+name: Mid-Week Check (Every Wednesday 10:00 Tbilisi)
+
+on:
+  schedule:
+      # 06:00 UTC = 10:00 Tbilisi (UTC+4), every Wednesday
+          - cron: '0 6 * * 3'
+            workflow_dispatch: # allow manual trigger
+
+            jobs:
+              midweek-check:
+                  runs-on: ubuntu-latest
+                      timeout-minutes: 10
+
+                          steps:
+                                - name: Authenticate with Nova API
+                                        id: auth
+                                                run: |
+                                                          JSON_BODY=$(python3 -c "import json; print(json.dumps({'username': '${{ secrets.NOVA_SA_LOGIN }}', 'password': '${{ secrets.NOVA_SA_PASSWORD }}'}))")
+                                                                    RESPONSE=$(curl -s -X POST \
+                                                                                'https://nova-api.gurtam.com/auth/login' \
+                                                                                            -H 'Content-Type: application/json' \
+                                                                                                        -d "$JSON_BODY")
+                                                                                                                  TOKEN=$(echo "$RESPONSE" | python3 -c "import sys,json; d=json.load(sys.stdin); print(d.get('access_token',''))")
+                                                                                                                            if [ -z "$TOKEN" ]; then echo "Auth failed: $RESPONSE"; exit 1; fi
+                                                                                                                                      echo "::add-mask::$TOKEN"
+                                                                                                                                                echo "token=$TOKEN" >> "$GITHUB_OUTPUT"
+                                                                                                                                                
+                                                                                                                                                      - name: Invoke Mid-Week Check
+                                                                                                                                                              run: |
+                                                                                                                                                                        RESPONSE=$(curl -s -X POST \
+                                                                                                                                                                                    "https://nova-api.gurtam.com/proxy/bots/${{ secrets.NOVA_BOT_ID }}/invoke" \
+                                                                                                                                                                                                -H 'Content-Type: application/json' \
+                                                                                                                                                                                                            -H "Authorization: Bearer ${{ steps.auth.outputs.token }}" \
+                                                                                                                                                                                                                        -d '{"query": "Run mid-week check. Send a Wednesday mid-week nudge to kmar (U0773LNMPEC) and taku (U07CE34MMSB). Use the SCHEDULED MID-WEEK CHECK format.", "user_id": "github-actions-cron"}')
+                                                                                                                                                                                                                                  echo "$RESPONSE" | python3 -c "import sys,json; d=json.load(sys.stdin); print(d.get('data',{}).get('answer','No answer received'))"
+                                                                                                                                                                                                                                            echo "Mid-week check delivered."
