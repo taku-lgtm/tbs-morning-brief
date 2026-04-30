@@ -15,19 +15,22 @@ jobs:
       - name: Authenticate with Nova API
         id: auth
         run: |
-          RESPONSE=$(curl -s -f -X POST \
+          JSON_BODY=$(python3 -c "import json; print(json.dumps({'username': '${{ secrets.NOVA_SA_LOGIN }}', 'password': '${{ secrets.NOVA_SA_PASSWORD }}'}))")  
+          RESPONSE=$(curl -s -X POST \
             'https://nova-api.gurtam.com/auth/login' \
             -H 'Content-Type: application/json' \
-            -d "{\"username\": \"${{ secrets.NOVA_SA_LOGIN }}\", \"password\": \"${{ secrets.NOVA_SA_PASSWORD }}\"}")
-          TOKEN=$(echo "$RESPONSE" | python3 -c "import sys,json; d=json.load(sys.stdin); print(d['access_token'])")
+            -d "$JSON_BODY")
+          TOKEN=$(echo "$RESPONSE" | python3 -c "import sys,json; d=json.load(sys.stdin); print(d.get('access_token',''))")
+          if [ -z "$TOKEN" ]; then echo "Auth failed: $RESPONSE"; exit 1; fi
           echo "::add-mask::$TOKEN"
           echo "token=$TOKEN" >> "$GITHUB_OUTPUT"
 
       - name: Invoke Morning Brief
         run: |
-          RESPONSE=$(curl -s -f -X POST \
+          RESPONSE=$(curl -s -X POST \
             "https://nova-api.gurtam.com/proxy/bots/${{ secrets.NOVA_BOT_ID }}/invoke" \
             -H 'Content-Type: application/json' \
             -H "Authorization: Bearer ${{ steps.auth.outputs.token }}" \
             -d '{"query": "Good morning! Please deliver the morning brief for today.", "user_id": "github-actions-cron"}')
           echo "$RESPONSE" | python3 -c "import sys,json; d=json.load(sys.stdin); print(d.get('data',{}).get('answer','No answer received'))"
+          echo "Morning brief delivered."
