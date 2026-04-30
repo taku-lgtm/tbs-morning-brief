@@ -1,0 +1,36 @@
+name: Birthday & Anniversary Alert (Every Tuesday 09:00 Tbilisi)
+
+on:
+  schedule:
+      # 05:00 UTC = 09:00 Tbilisi (UTC+4), every Tuesday
+          - cron: '0 5 * * 2'
+            workflow_dispatch: # allow manual trigger
+
+            jobs:
+              birthday-alert:
+                  runs-on: ubuntu-latest
+                      timeout-minutes: 10
+
+                          steps:
+                                - name: Authenticate with Nova API
+                                        id: auth
+                                                run: |
+                                                          JSON_BODY=$(python3 -c "import json; print(json.dumps({'username': '${{ secrets.NOVA_SA_LOGIN }}', 'password': '${{ secrets.NOVA_SA_PASSWORD }}'}))")
+                                                                    RESPONSE=$(curl -s -X POST \
+                                                                                'https://nova-api.gurtam.com/auth/login' \
+                                                                                            -H 'Content-Type: application/json' \
+                                                                                                        -d "$JSON_BODY")
+                                                                                                                  TOKEN=$(echo "$RESPONSE" | python3 -c "import sys,json; d=json.load(sys.stdin); print(d.get('access_token',''))")
+                                                                                                                            if [ -z "$TOKEN" ]; then echo "Auth failed: $RESPONSE"; exit 1; fi
+                                                                                                                                      echo "::add-mask::$TOKEN"
+                                                                                                                                                echo "token=$TOKEN" >> "$GITHUB_OUTPUT"
+                                                                                                                                                
+                                                                                                                                                      - name: Invoke Birthday Alert
+                                                                                                                                                              run: |
+                                                                                                                                                                        RESPONSE=$(curl -s -X POST \
+                                                                                                                                                                                    "https://nova-api.gurtam.com/proxy/bots/${{ secrets.NOVA_BOT_ID }}/invoke" \
+                                                                                                                                                                                                -H 'Content-Type: application/json' \
+                                                                                                                                                                                                            -H "Authorization: Bearer ${{ steps.auth.outputs.token }}" \
+                                                                                                                                                                                                                        -d '{"query": "Run birthday and work anniversary alert. Check the Birthdays and Anniversaries Registry for any upcoming birthdays or work anniversaries this week and next week. If any are found, send a heads-up DM to taku (U07CE34MMSB). Use the SCHEDULED BIRTHDAY ALERT format. If nothing is coming up this week or next, do not send anything.", "user_id": "github-actions-cron"}')
+                                                                                                                                                                                                                                  echo "$RESPONSE" | python3 -c "import sys,json; d=json.load(sys.stdin); print(d.get('data',{}).get('answer','No answer received'))"
+                                                                                                                                                                                                                                            echo "Birthday alert check completed."
