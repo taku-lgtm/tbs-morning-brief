@@ -1,0 +1,36 @@
+name: TRP Deadline Alert (Every Monday 09:00 Tbilisi)
+
+on:
+  schedule:
+      # 05:00 UTC = 09:00 Tbilisi (UTC+4), every Monday
+          - cron: '0 5 * * 1'
+            workflow_dispatch: # allow manual trigger
+
+            jobs:
+              trp-deadline-alert:
+                  runs-on: ubuntu-latest
+                      timeout-minutes: 10
+
+                          steps:
+                                - name: Authenticate with Nova API
+                                        id: auth
+                                                run: |
+                                                          JSON_BODY=$(python3 -c "import json; print(json.dumps({'username': '${{ secrets.NOVA_SA_LOGIN }}', 'password': '${{ secrets.NOVA_SA_PASSWORD }}'}))")
+                                                                    RESPONSE=$(curl -s -X POST \
+                                                                                'https://nova-api.gurtam.com/auth/login' \
+                                                                                            -H 'Content-Type: application/json' \
+                                                                                                        -d "$JSON_BODY")
+                                                                                                                  TOKEN=$(echo "$RESPONSE" | python3 -c "import sys,json; d=json.load(sys.stdin); print(d.get('access_token',''))")
+                                                                                                                            if [ -z "$TOKEN" ]; then echo "Auth failed: $RESPONSE"; exit 1; fi
+                                                                                                                                      echo "::add-mask::$TOKEN"
+                                                                                                                                                echo "token=$TOKEN" >> "$GITHUB_OUTPUT"
+                                                                                                                                                
+                                                                                                                                                      - name: Invoke TRP Deadline Alert
+                                                                                                                                                              run: |
+                                                                                                                                                                        RESPONSE=$(curl -s -X POST \
+                                                                                                                                                                                    "https://nova-api.gurtam.com/proxy/bots/${{ secrets.NOVA_BOT_ID }}/invoke" \
+                                                                                                                                                                                                -H 'Content-Type: application/json' \
+                                                                                                                                                                                                            -H "Authorization: Bearer ${{ steps.auth.outputs.token }}" \
+                                                                                                                                                                                                                        -d '{"query": "Run TRP deadline alert. Check the TRP registry for all foreign employees and send DM alerts to taku (U07CE34MMSB) and kmar (U0773LNMPEC) for any permits expiring within 30 days. Use the SCHEDULED TRP ALERT format.", "user_id": "github-actions-cron"}')
+                                                                                                                                                                                                                                  echo "$RESPONSE" | python3 -c "import sys,json; d=json.load(sys.stdin); print(d.get('data',{}).get('answer','No answer received'))"
+                                                                                                                                                                                                                                            echo "TRP alert delivered."
