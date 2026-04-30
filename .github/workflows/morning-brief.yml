@@ -1,0 +1,39 @@
+name: Morning Brief - TBS Office (09:00 Tbilisi)
+
+on:
+  schedule:
+    # 05:00 UTC = 09:00 Tbilisi (UTC+4)
+    - cron: '0 5 * * *'
+  workflow_dispatch:  # allow manual trigger
+
+jobs:
+  deliver-morning-brief:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - name: Authenticate with Nova API
+        id: auth
+        run: |
+          RESPONSE=$(curl -s -f -X POST \
+            'https://nova-api.gurtam.com/auth/login' \
+            -H 'Content-Type: application/json' \
+            -d "{\"username\": \"${{ secrets.NOVA_SA_LOGIN }}\", \"password\": \"${{ secrets.NOVA_SA_PASSWORD }}\"}")
+          TOKEN=$(echo "$RESPONSE" | python3 -c "import sys,json; print(json.load(sys.stdin)['access_token'])")
+          echo "::add-mask::$TOKEN"
+          echo "token=$TOKEN" >> "$GITHUB_OUTPUT"
+
+      - name: Invoke Morning Brief
+        run: |
+          curl -s -f -X POST \
+            "https://nova-api.gurtam.com/proxy/bots/${{ secrets.NOVA_BOT_ID }}/invoke" \
+            -H 'Content-Type: application/json' \
+            -H "Authorization: Bearer ${{ steps.auth.outputs.token }}" \
+            -d '{"query": "Good morning! Please deliver the morning brief for today.", "user_id": "github-actions-cron"}' \
+            | python3 -c "
+import sys, json
+data = json.load(sys.stdin)
+answer = data.get('data', {}).get('answer', 'No answer received')
+print('=== Morning Brief Delivered ===')
+print(answer)
+"
