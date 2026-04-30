@@ -31,6 +31,6 @@ jobs:
             "https://nova-api.gurtam.com/proxy/bots/${{ secrets.NOVA_BOT_ID }}/invoke" \
             -H 'Content-Type: application/json' \
             -H "Authorization: Bearer ${{ steps.auth.outputs.token }}" \
-            -d '{"query": "Good morning! Please deliver the morning brief for today to Slack users kmar, taku, and davl.", "user_id": "github-actions-cron"}')
+            -d '{"query": "Good morning! Please deliver the morning brief for today to the following Slack users: <@D08N4LB4S2V> (davl), <@D07DLM93GD9> (kmar), <@D07CUKKMSKU> (taku).", "user_id": "github-actions-cron"}')
           echo "$RESPONSE" | python3 -c "import sys,json; d=json.load(sys.stdin); print(d.get('data',{}).get('answer','No answer received'))"
           echo "Morning brief delivered."
