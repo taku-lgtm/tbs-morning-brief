@@ -2,35 +2,36 @@ name: Friday Wrap-Up for Davl (Every Friday 17:00 Tbilisi)
 
 on:
   schedule:
-      # 13:00 UTC = 17:00 Tbilisi (UTC+4), every Friday
-          - cron: '0 13 * * 5'
-            workflow_dispatch: # allow manual trigger
+    # 13:00 UTC = 17:00 Tbilisi (UTC+4), every Friday
+    - cron: '0 13 * * 5'
+  workflow_dispatch: # allow manual trigger
 
-            jobs:
-              friday-wrapup:
-                  runs-on: ubuntu-latest
-                      timeout-minutes: 10
+jobs:
+  friday-wrapup:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
 
-                          steps:
-                                - name: Authenticate with Nova API
-                                        id: auth
-                                                run: |
-                                                          JSON_BODY=$(python3 -c "import json; print(json.dumps({'username': '${{ secrets.NOVA_SA_LOGIN }}', 'password': '${{ secrets.NOVA_SA_PASSWORD }}'}))")
-                                                                    RESPONSE=$(curl -s -X POST \
-                                                                                'https://nova-api.gurtam.com/auth/login' \
-                                                                                            -H 'Content-Type: application/json' \
-                                                                                                        -d "$JSON_BODY")
-                                                                                                                  TOKEN=$(echo "$RESPONSE" | python3 -c "import sys,json; d=json.load(sys.stdin); print(d.get('access_token',''))")
-                                                                                                                            if [ -z "$TOKEN" ]; then echo "Auth failed: $RESPONSE"; exit 1; fi
-                                                                                                                                      echo "::add-mask::$TOKEN"
-                                                                                                                                                echo "token=$TOKEN" >> "$GITHUB_OUTPUT"
-                                                                                                                                                
-                                                                                                                                                      - name: Invoke Friday Wrap-Up
-                                                                                                                                                              run: |
-                                                                                                                                                                        RESPONSE=$(curl -s -X POST \
-                                                                                                                                                                                    "https://nova-api.gurtam.com/proxy/bots/${{ secrets.NOVA_BOT_ID }}/invoke" \
-                                                                                                                                                                                                -H 'Content-Type: application/json' \
-                                                                                                                                                                                                            -H "Authorization: Bearer ${{ steps.auth.outputs.token }}" \
-                                                                                                                                                                                                                        -d '{"query": "Run end-of-week wrap-up. Send a Friday wrap-up DM to davl (U08M3HZMG2V). Use the SCHEDULED FRIDAY WRAP-UP format.", "user_id": "github-actions-cron"}')
-                                                                                                                                                                                                                                  echo "$RESPONSE" | python3 -c "import sys,json; d=json.load(sys.stdin); print(d.get('data',{}).get('answer','No answer received'))"
-                                                                                                                                                                                                                                            echo "Friday wrap-up delivered."
+    steps:
+      - name: Authenticate with Nova API
+        id: auth
+        run: |
+          JSON_BODY=$(python3 -c "import json; print(json.dumps({'username': '${{ secrets.NOVA_SA_LOGIN }}', 'password': '${{ secrets.NOVA_SA_PASSWORD }}'}))")
+          RESPONSE=$(curl -s -X POST \
+            'https://nova-api.gurtam.com/auth/login' \
+            -H 'Content-Type: application/json' \
+            -d "$JSON_BODY")
+          TOKEN=$(echo "$RESPONSE" | python3 -c "import sys,json; d=json.load(sys.stdin); print(d.get('access_token',''))")
+          if [ -z "$TOKEN" ]; then echo "Auth failed: $RESPONSE"; exit 1; fi
+          echo "::add-mask::$TOKEN"
+          echo "token=$TOKEN" >> "$GITHUB_OUTPUT"
+
+      - name: Invoke Friday Wrap-Up
+        run: |
+          RESPONSE=$(curl -s -X POST \
+            "https://nova-api.gurtam.com/proxy/bots/${{ secrets.NOVA_BOT_ID }}/invoke" \
+            -H 'Content-Type: application/json' \
+            -H "Authorization: Bearer ${{ steps.auth.outputs.token }}" \
+            -d '{"query": "Run end-of-week wrap-up. Send a Friday wrap-up DM to davl (U08M3HZMG2V). Use the SCHEDULED FRIDAY WRAP-UP format."}')
+          echo "=== RAW API RESPONSE ==="
+          echo "$RESPONSE"
+          echo "Friday wrap-up delivered."
