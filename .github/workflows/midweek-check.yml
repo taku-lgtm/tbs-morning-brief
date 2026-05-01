@@ -31,7 +31,7 @@ jobs:
             "https://nova-api.gurtam.com/proxy/bots/${{ secrets.NOVA_BOT_ID }}/invoke" \
             -H 'Content-Type: application/json' \
             -H "Authorization: Bearer ${{ steps.auth.outputs.token }}" \
-            -d '{"query": "Run mid-week check. Send a Wednesday mid-week nudge to kmar (U0773LNMPEC) and taku (U07CE34MMSB). Use the SCHEDULED MID-WEEK CHECK format."}')
+            -d '{"query": "Run mid-week check. Send a Wednesday mid-week nudge to kmar (D07DLM93GD9) and taku (U07CE34MMSB). Use the SCHEDULED MID-WEEK CHECK format."}')
           echo "=== RAW API RESPONSE ==="
           echo "$RESPONSE"
           echo "Mid-week check delivered."
