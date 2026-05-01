@@ -31,7 +31,7 @@ jobs:
             "https://nova-api.gurtam.com/proxy/bots/${{ secrets.NOVA_BOT_ID }}/invoke" \
             -H 'Content-Type: application/json' \
             -H "Authorization: Bearer ${{ steps.auth.outputs.token }}" \
-            -d '{"query": "Run TRP deadline alert. Check the TRP registry for all foreign employees and send DM alerts to taku (U07CE34MMSB) and kmar (U0773LNMPEC) for any permits expiring within 30 days. Use the SCHEDULED TRP ALERT format."}')
+            -d '{"query": "Run TRP deadline alert. Check the TRP registry for all foreign employees and send DM alerts to taku (U07CE34MMSB) and kmar (D07DLM93GD9) for any permits expiring within 30 days. Use the SCHEDULED TRP ALERT format."}')
           echo "=== RAW API RESPONSE ==="
           echo "$RESPONSE"
           echo "TRP alert delivered."
