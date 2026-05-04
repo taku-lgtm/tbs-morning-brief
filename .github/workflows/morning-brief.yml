@@ -2,7 +2,7 @@ name: Morning Brief - TBS Office (Mon & Fri 10:00 Tbilisi)
 
 on:
   schedule:
-    # 06:00 UTC = 10:00 Tbilisi (UTC+4), Mon and Fri only
+    # 06:00 UTC = 10:00 Tbilisi (UTC+4), Mon and Fri only — last updated 2026-05-04
     - cron: '0 6 * * 1,5'
   workflow_dispatch: # allow manual trigger
 
