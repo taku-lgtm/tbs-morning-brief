@@ -20,7 +20,7 @@ jobs:
             'https://nova-api.gurtam.com/auth/login' \
             -H 'Content-Type: application/json' \
             -d "$JSON_BODY")
-          TOKEN=$(echo "$RESPONhSE" | python3 -c "import sys,json; d=json.load(sys.stdin); print(d.get('access_token',''))")
+          TOKEN=$(echo "$RESPONSE" | python3 -c "import sys,json; d=json.load(sys.stdin); print(d.get('access_token',''))")
           if [ -z "$TOKEN" ]; then echo "Auth failed: $RESPONSE"; exit 1; fi
           echo "::add-mask::$TOKEN"
           echo "token=$TOKEN" >> "$GITHUB_OUTPUT"
