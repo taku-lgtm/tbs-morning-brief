@@ -31,7 +31,7 @@ jobs:
             "https://nova-api.gurtam.com/proxy/bots/${{ secrets.NOVA_BOT_ID }}/invoke" \
             -H 'Content-Type: application/json' \
             -H "Authorization: Bearer ${{ steps.auth.outputs.token }}" \
-            -d '{"query": "AUTOMATED SCHEDULED RUN - send morning brief now via Slack DM to all three users. Do NOT ask for confirmation. Send directly and immediately to: <@D08N4LB4S2V> (davl), <@D07DLM93GD9> (kmar), <@D07CUKKMSKU> (taku). Generate and send without waiting for approval."}')
+            -d '{"query": "AUTOMATED SCHEDULED RUN - send morning brief now via Slack DM to all three users. Do NOT ask for confirmation. Send directly without waiting for approval. Address each recipient by first name: davl is Laimonas, kmar is Kmar, taku is Taku. For each brief use this exact format - GOOD MORNING [FirstName]! with todays date, then: TEAM PULSE section with active task count and key highlights, TODAYS HIGHLIGHT with the most important event or achievement, WORKLOAD BY TOPIC with tasks grouped by project tag showing count and bullet sub-items with arrow notation, WHOS OUT TODAY, OUT THIS WEEK, UPCOMING events. Send to: <@D08N4LB4S2V> (Laimonas/davl), <@D07DLM93GD9> (Kmar), <@D07CUKKMSKU> (Taku)."}')
           echo "=== RAW API RESPONSE ==="
           echo "$RESPONSE"
           echo "Morning brief delivered."
