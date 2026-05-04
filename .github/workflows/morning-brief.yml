@@ -2,7 +2,7 @@ name: Morning Brief - TBS Office (Mon & Fri 10:00 Tbilisi)
 
 on:
   schedule:
-    # 06:00 UTC = 10:00 Tbilisi (UTC+4), Mon and Fri only — last updated 2026-05-04
+    # 06:00 UTC = 10:00 Tbilisi (UTC+4), Mon and Fri only
     - cron: '0 6 * * 1,5'
   workflow_dispatch: # allow manual trigger
 
@@ -31,7 +31,7 @@ jobs:
             "https://nova-api.gurtam.com/proxy/bots/${{ secrets.NOVA_BOT_ID }}/invoke" \
             -H 'Content-Type: application/json' \
             -H "Authorization: Bearer ${{ steps.auth.outputs.token }}" \
-            -d '{"query": "This is an AUTOMATED scheduled delivery — no confirmation needed. Immediately send the morning brief via Slack DM to these users without asking for approval: <@D08N4LB4S2V> (davl), <@D07DLM93GD9> (kmar), <@D07CUKKMSKU> (taku). Generate the brief and send it directly now."}')
+            -d '{"query": "AUTOMATED SCHEDULED RUN - send morning brief now via Slack DM to all three users. Do NOT ask for confirmation. Send directly and immediately to: <@D08N4LB4S2V> (davl), <@D07DLM93GD9> (kmar), <@D07CUKKMSKU> (taku). Generate and send without waiting for approval."}')
           echo "=== RAW API RESPONSE ==="
           echo "$RESPONSE"
           echo "Morning brief delivered."
